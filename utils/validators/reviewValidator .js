@@ -3,7 +3,7 @@ const Review = require("../../models/reviewModel");
 
 const {
   validatorMiddleware,
-} = require("../../middlewares/validatorMiddleware");
+} = require('../../middleWares/validatorMiddleware')
 
 exports.updateReviewValidator = [
   check("id")
