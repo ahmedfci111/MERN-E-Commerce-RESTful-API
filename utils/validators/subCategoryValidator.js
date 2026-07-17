@@ -1,7 +1,7 @@
 const { check ,body} = require("express-validator");
 const slugify = require("slugify");
 const { validatorMiddleware } = require("../../middlewares/validatorMiddleware");
-const CategoryModel = require("../../models/categoryModel");
+const CategoryModel = require('../../middleWares/validatorMiddleware')
 exports.getSubCategoryValidator = [
   check("id")
     .isMongoId()
