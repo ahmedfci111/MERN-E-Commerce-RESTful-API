@@ -3,7 +3,7 @@ const slugify = require("slugify");
 const User = require("../../models/userModel");
 const {
   validatorMiddleware,
-} = require("../../middlewares/validatorMiddleware");
+} = require('../../middleWares/validatorMiddleware')
 
 exports.signUpValidator = [
   check("name")
