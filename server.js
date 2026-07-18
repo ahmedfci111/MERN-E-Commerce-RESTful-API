@@ -8,6 +8,7 @@ const dbConnection = require("./config/dbConnection");
 const cors = require("cors");
 const compression = require("compression");
 const {mountRoute} = require("./routes/mountRouts");
+const { webHookCheckout } = require("./services/orderServies");
 
 const app = express();
 //all ui can use my app
@@ -31,6 +32,12 @@ app.use(express.static(path.join(__dirname, "uploads")));
 app.get("/", (req, res) => {
   res.send("run app v1");
 });
+//webhook route
+// The express.raw middleware keeps the request body unparsed;
+// this is necessary for the signature verification process
+app.post('/webhook', express.raw({type: 'application/json'}),webHookCheckout );
+
+
 //use mounten Rouet
 mountRoute(app);
 
