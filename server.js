@@ -7,7 +7,7 @@ const morgan = require("morgan");
 const dbConnection = require("./config/dbConnection");
 const cors = require("cors");
 const compression = require("compression");
-const {mountRoute} = require("./routes/mountRouts");
+const { mountRoute } = require("./routes/mountRouts");
 const { webHookCheckout } = require("./services/orderServies");
 
 const app = express();
@@ -35,12 +35,14 @@ app.get("/", (req, res) => {
 //webhook route
 // The express.raw middleware keeps the request body unparsed;
 // this is necessary for the signature verification process
-app.post('/webhook', express.raw({type: 'application/json'}),webHookCheckout );
-
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  webHookCheckout,
+);
 
 //use mounten Rouet
 mountRoute(app);
-
 
 // handel route * not found
 app.use((req, res, next) => {
