@@ -24,14 +24,6 @@ if (process.env.NODE_ENV) {
   app.use(morgan("dev"));
   console.log(`mode : ${process.env.NODE_ENV}`);
 }
-//parsing to json
-app.use(express.json());
-app.set("query parser", "extended");
-app.use(express.static(path.join(__dirname, "uploads")));
-//routing
-app.get("/", (req, res) => {
-  res.send("run app v1");
-});
 //webhook route
 // The express.raw middleware keeps the request body unparsed;
 // this is necessary for the signature verification process
@@ -40,6 +32,15 @@ app.post(
   express.raw({ type: "application/json" }),
   webHookCheckout,
 );
+
+//parsing to json
+app.use(express.json());
+app.set("query parser", "extended");
+app.use(express.static(path.join(__dirname, "uploads")));
+//routing
+app.get("/", (req, res) => {
+  res.send("run app v1");
+});
 
 //use mounten Rouet
 mountRoute(app);

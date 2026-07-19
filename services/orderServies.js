@@ -175,33 +175,43 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
 });
 //webhook deploy
 const createCardOrder = async (session) => {
-  const cartId = session.client_reference_id;
-  const shippingAddress = session.metadata;
-  const orderPrice = session.amount_total / 100;
-  const cart = await Cart.findById(cartId);
-  const user = await User.findOne({ email: session.customer_email });
-  //create order
-  if (!cart) {
-    return next(new ApiError("invalid cart id", 404));
-  }
-  // get order price depend cart price
-  const cartPrice = cart.totalPriceAfterDiscount
-    ? cart.totalPriceAfterDiscount
-    : cart.totalPrice;
-  const totalOrderPrice = cartPrice;
+  try {
+    console.log("========== WEBHOOK ==========");
+    console.log("Session ID:", session.id);
 
-  //create order
-  const order = await Order.create({
-    user: user._id,
-    cartItems: cart.cartItems,
-    totalOrderPrice: orderPrice,
-    shippingAddress,
-    isPaid: true,
-    paidAt: Date.now(),
-    paymentMethodType: "card",
-  });
-  // update product quantity and solid after order
-  if (order) {
+    const cartId = session.client_reference_id;
+    const shippingAddress = session.metadata;
+    const orderPrice = session.amount_total / 100;
+
+    console.log("Cart ID:", cartId);
+    console.log("Customer Email:", session.customer_email);
+
+    const cart = await Cart.findById(cartId);
+
+    if (!cart) {
+      throw new Error("Invalid cart id");
+    }
+
+    const user = await User.findOne({
+      email: session.customer_email,
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const order = await Order.create({
+      user: user._id,
+      cartItems: cart.cartItems,
+      totalOrderPrice: orderPrice,
+      shippingAddress,
+      isPaid: true,
+      paidAt: Date.now(),
+      paymentMethodType: "card",
+    });
+
+    console.log("Order created:", order._id);
+
     const bulkOption = cart.cartItems.map((item) => ({
       updateOne: {
         filter: { _id: item.product },
@@ -215,8 +225,15 @@ const createCardOrder = async (session) => {
     }));
 
     await Product.bulkWrite(bulkOption);
-    // clear the cart
-    await Cart.findOneAndDelete({ _id: cartId });
+    console.log("Products updated");
+
+    await Cart.findByIdAndDelete(cartId);
+    console.log("Cart deleted");
+
+    console.log("========== WEBHOOK DONE ==========");
+  } catch (err) {
+    console.error("Create Card Order Error:");
+    console.error(err);
   }
 };
 exports.webHookCheckout = asyncHandler(async (req, res, next) => {
@@ -235,7 +252,7 @@ exports.webHookCheckout = asyncHandler(async (req, res, next) => {
       return res.sendStatus(400);
     }
     if (event.type === "checkout.session.completed") {
-      createCardOrder(event.data.object);
+      await createCardOrder(event.data.object);
     }
     res.status(201).json({ received: true });
   }
