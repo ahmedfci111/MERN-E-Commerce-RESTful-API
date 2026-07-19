@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const sendEmail = require("../utils/sendEmail");
+const {sanitizeUser} = require("../utils/santalizeData")
+const createToken = require("../utils/createToken");
 // sign-up
 //public
 //create user
@@ -16,12 +18,12 @@ exports.signUp = asyncHandler(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
   });
-  const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-    expiresIn: process.env.EXPIRE_DATE,
-  });
+
+    //generate new token
+  const token = createToken(user._id);
   res.status(201).json({
     status: "success",
-    data: user,
+    data:sanitizeUser(user) ,
     token,
   });
 });
@@ -32,10 +34,9 @@ exports.login = asyncHandler(async (req, res, next) => {
   if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
     return next(new ApiError(`invalid email or password`, 404));
   }
-  // genrate token
-  const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-    expiresIn: process.env.EXPIRE_DATE,
-  });
+ 
+  //generate new token
+  const token = createToken(user._id);
   res.status(201).json({
     status: "success",
     data: user,
@@ -179,11 +180,8 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   user.passwordResetVerify = undefined;
   user.passwordRestCode = undefined;
   await user.save();
-
-  // generate new token
-  const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-    expiresIn: process.env.EXPIRE_DATE,
-  });
+ //generate new token
+  const token = createToken(user._id);
   // return response
 
   res.status(200).json({

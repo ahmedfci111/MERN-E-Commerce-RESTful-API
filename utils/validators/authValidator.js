@@ -3,7 +3,7 @@ const slugify = require("slugify");
 const User = require("../../models/userModel");
 const {
   validatorMiddleware,
-} = require('../../middleWares/validatorMiddleware')
+} = require("../../middleWares/validatorMiddleware");
 
 exports.signUpValidator = [
   check("name")
@@ -51,7 +51,5 @@ exports.loginValidator = [
     .withMessage("Password is required")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
-
-  ,
   validatorMiddleware,
 ];
