@@ -56,19 +56,27 @@ exports.createFilter = asyncHandler(async (req, res, next) => {
   next();
 });
 // get all user order
-exports.getAllOrders = factory.getAll(Order, {
-  path: "user",
-  select: "name email",
-  path: "cartItems.product",
-  select: "title rating",
-});
+exports.getAllOrders = factory.getAll(Order, [
+  {
+    path: "user",
+    select: "name email",
+  },
+  {
+    path: "cartItems.product",
+    select: "title rating",
+  },
+]);
 // get order id
-exports.getOrder = factory.getOne(Order, {
-  path: "user",
-  select: "name email",
-  path: "cartItems.product",
-  select: "title rating",
-});
+exports.getOrder = factory.getOne(Order, [
+  {
+    path: "user",
+    select: "name email",
+  },
+  {
+    path: "cartItems.product",
+    select: "title rating",
+  },
+]);
 //update tp pay order by admin and manger
 exports.updateToPayOrder = asyncHandler(async (req, res, next) => {
   //get order by id
@@ -198,6 +206,13 @@ const createCardOrder = async (session) => {
 
     if (!user) {
       throw new Error("User not found");
+    }
+    const existOrder = await Order.findOne({
+      stripeSessionId: session.id,
+    });
+
+    if (existOrder) {
+      return;
     }
 
     const order = await Order.create({
